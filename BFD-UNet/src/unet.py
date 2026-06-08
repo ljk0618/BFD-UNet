@@ -91,10 +91,10 @@ class DeformDoubleConv(nn.Module):
         return x
 
 
-class EMA(nn.Module):
+class MDCA(nn.Module):
 
     def __init__(self, channels: int, factor: int = 8, reduction: int = 16):
-        super(EMA, self).__init__()
+        super(MDCA, self).__init__()
 
         groups = min(factor, channels)
         while channels % groups != 0 and groups > 1:
@@ -106,9 +106,6 @@ class EMA(nn.Module):
 
         hidden_channels = max(self.channels_per_group // reduction, 1)
 
-        # =====================================================
-        # 1. 多尺度深度卷积特征增强
-        # =====================================================
         self.dwconv3x3 = nn.Conv2d(
             channels, channels,
             kernel_size=3, stride=1, padding=1,
@@ -294,21 +291,16 @@ class HaarIWT(nn.Module):
 
 
 class SkipFusion(nn.Module):
-    """
-    原输入特征 x 与逆小波重建特征 x_recon 融合，
-    再通过 EMA 增强，作为 skip 输出
-    """
 
     def __init__(self, channels: int, ema_factor: int = 8):
         super(SkipFusion, self).__init__()
-        self.fuse = FixedDoubleConv(channels * 2, channels, mid_channels=channels)
-        self.ema = EMA(channels, factor=ema_factor)
+        self.refine = FixedDoubleConv(channels, channels, mid_channels=channels)
+        self.mdca = MDCA(channels, factor=ema_factor)
 
-    def forward(self, x: torch.Tensor, x_recon: torch.Tensor) -> torch.Tensor:
-        out = torch.cat([x, x_recon], dim=1)
-        out = self.fuse(out)
-        out = self.ema(out)
-        return out
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.refine(x)
+        x = self.mdca(x)
+        return x
 
 
 class WaveletDown(nn.Module):
@@ -338,17 +330,32 @@ class WaveletDown(nn.Module):
         else:
             raise ValueError(f"Unsupported conv_type: {conv_type}")
 
+        hidden_channels = in_channels * 2
+        self.freq_fuse = nn.Sequential(
+            nn.Conv2d(in_channels * 4, hidden_channels, kernel_size=1, bias=False),
+            nn.BatchNorm2d(hidden_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden_channels, in_channels * 4, kernel_size=1, bias=False),
+            nn.BatchNorm2d(in_channels * 4)
+        )
+
+        self.res_weight = nn.Parameter(torch.tensor(0.1))
+
         self.skip_fuse = SkipFusion(in_channels, ema_factor=ema_factor)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         ll, lh, hl, hh, orig_size = self.dwt(x)
 
-        # 主干：仅低频 LL 进入下一层
         x_down = self.low_conv(ll)
 
-        # 跳跃连接：IWT 重建 + 融合 + EMA
-        x_recon = self.iwt(ll, lh, hl, hh, out_size=orig_size)
-        skip = self.skip_fuse(x, x_recon)
+        freq = torch.cat([ll, lh, hl, hh], dim=1)
+        freq = self.freq_fuse(freq)
+        ll_r, lh_r, hl_r, hh_r = torch.chunk(freq, chunks=4, dim=1)
+
+        x_recon = self.iwt(ll_r, lh_r, hl_r, hh_r, out_size=orig_size)
+        skip_enhanced = x + torch.tanh(self.res_weight) * x_recon
+
+        skip = self.skip_fuse(skip_enhanced)
 
         return x_down, skip
 
@@ -460,34 +467,34 @@ class UNet(nn.Module):
     def get_attention_maps(self):
 
         return {
-            "skip1": self.down1.skip_fuse.ema.last_att_map,
-            "skip2": self.down2.skip_fuse.ema.last_att_map,
-            "skip3": self.down3.skip_fuse.ema.last_att_map,
-            "skip4": self.down4.skip_fuse.ema.last_att_map,
+            "skip1": self.down1.skip_fuse.mdca.last_att_map,
+            "skip2": self.down2.skip_fuse.mdca.last_att_map,
+            "skip3": self.down3.skip_fuse.mdca.last_att_map,
+            "skip4": self.down4.skip_fuse.mdca.last_att_map,
         }
 
     def get_attention_details(self):
 
         return {
             "skip1": {
-                "att_map": self.down1.skip_fuse.ema.last_att_map,
-                "spatial_map": self.down1.skip_fuse.ema.last_spatial_map,
-                "channel_map": self.down1.skip_fuse.ema.last_channel_map,
+                "att_map": self.down1.skip_fuse.mdca.last_att_map,
+                "spatial_map": self.down1.skip_fuse.mdca.last_spatial_map,
+                "channel_map": self.down1.skip_fuse.mdca.last_channel_map,
             },
             "skip2": {
-                "att_map": self.down2.skip_fuse.ema.last_att_map,
-                "spatial_map": self.down2.skip_fuse.ema.last_spatial_map,
-                "channel_map": self.down2.skip_fuse.ema.last_channel_map,
+                "att_map": self.down2.skip_fuse.mdca.last_att_map,
+                "spatial_map": self.down2.skip_fuse.mdca.last_spatial_map,
+                "channel_map": self.down2.skip_fuse.mdca.last_channel_map,
             },
             "skip3": {
-                "att_map": self.down3.skip_fuse.ema.last_att_map,
-                "spatial_map": self.down3.skip_fuse.ema.last_spatial_map,
-                "channel_map": self.down3.skip_fuse.ema.last_channel_map,
+                "att_map": self.down3.skip_fuse.mdca.last_att_map,
+                "spatial_map": self.down3.skip_fuse.mdca.last_spatial_map,
+                "channel_map": self.down3.skip_fuse.mdca.last_channel_map,
             },
             "skip4": {
-                "att_map": self.down4.skip_fuse.ema.last_att_map,
-                "spatial_map": self.down4.skip_fuse.ema.last_spatial_map,
-                "channel_map": self.down4.skip_fuse.ema.last_channel_map,
+                "att_map": self.down4.skip_fuse.mdca.last_att_map,
+                "spatial_map": self.down4.skip_fuse.mdca.last_spatial_map,
+                "channel_map": self.down4.skip_fuse.mdca.last_channel_map,
             },
         }
 
