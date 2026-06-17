@@ -21,7 +21,6 @@ BFD-UNet/
 └── requirements.txt
 ```
 
-The main experiment uses `train.py` and `src/unet.py`. The multi-GPU script is not required for reproducing the reported single-GPU experiments.
 
 ## 2. Environment
 
