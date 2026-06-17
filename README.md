@@ -172,10 +172,3 @@ Run:
 python predict.py
 ```
 
-The script saves two files in the repository root:
-
-```text
-test_result_mask.png       # predicted binary/class mask
-test_result_overlay.png    # overlay visualization
-```
-
