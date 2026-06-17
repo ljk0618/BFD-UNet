@@ -74,7 +74,7 @@ DATA_ROOT/
                 └── test.txt
 ```
 
-Each line in `train.txt` 、`test.txt` and `val.txt` should contain only the file name without extension:
+Each line in `train.txt、test.txt` and `val.txt` should contain only the file name without extension:
 
 ```text
 0001
