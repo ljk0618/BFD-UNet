@@ -239,29 +239,13 @@ python predict.py \
   --no-save-images
 ```
 
-## 6. Pretrained weights
-
-The pretrained weights used for reproducing the main experimental results can be downloaded from:
-
-```text
-[Please insert the download link for best_model.pth here]
-```
-
-After downloading, place the checkpoint at:
-
-```text
-./save_weights/best_model.pth
-```
-
-Then run the test command in Section 5 to reproduce the reported test-set metrics without retraining the model.
-
-## 7. Dataset availability
+## 6. Dataset availability
 
 The in-house panoramic dental radiograph dataset used in this study contains 2,150 images. Due to data privacy and ethical restrictions, the in-house dataset is not directly included in this repository. The dataset may be obtained from the corresponding author upon reasonable request and after permission is granted.
 
 The repository provides the required dataset structure and scripts for training, testing, and evaluation. Users who wish to reproduce the experiments should arrange the dataset according to the Pascal VOC-style layout described in Section 2.
 
-## 8. Notes for reproducibility
+## 7. Notes for reproducibility
 
 To reduce unnecessary workload for readers, the repository provides:
 
