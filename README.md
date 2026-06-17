@@ -166,8 +166,6 @@ Place the trained checkpoint at:
 ./save_weights/best_model.pth
 ```
 
-Then set the input image path in `predict.py`:
-
 Run:
 
 ```bash
