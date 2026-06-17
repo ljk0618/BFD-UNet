@@ -71,6 +71,7 @@ DATA_ROOT/
             └── Segmentation/
                 ├── train.txt
                 └── val.txt
+                └── test.txt
 ```
 
 Each line in `train.txt` and `val.txt` should contain only the file name without extension:
