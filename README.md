@@ -158,7 +158,7 @@ python train.py \
 ```
 
 
-## 5. Inference on a single image
+## 5. Test
 
 Place the trained checkpoint at:
 
@@ -167,10 +167,6 @@ Place the trained checkpoint at:
 ```
 
 Then set the input image path in `predict.py`:
-
-```python
-img_path = "path/to/test/image.png"
-```
 
 Run:
 
