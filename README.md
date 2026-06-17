@@ -2,27 +2,8 @@
 
 This repository provides the PyTorch implementation of **BFD-UNet**, a U-Net-based semantic segmentation network with wavelet-based feature decomposition, multi-directional coordinate attention, and constrained deformable convolution. The code is organized for reproducing the training and validation experiments with a Pascal VOC-style dataset layout.
 
-## 1. What is included
 
-```text
-BFD-UNet/
-├── src/
-│   ├── unet.py              # BFD-UNet model definition
-│   ├── mobilenet_unet.py    # MobileNetV3-UNet baseline
-│   └── vgg_unet.py          # VGG16-UNet baseline
-├── train_utils/
-│   ├── train_and_eval.py    # training loop, validation metrics, loss function
-│   ├── dice_coefficient_loss.py
-│   └── distributed_utils.py
-├── my_dataset.py            # VOC-style segmentation dataset loader
-├── transforms.py            # paired image/mask transforms
-├── train.py                 # main single-GPU training script
-├── predict.py               # single-image inference script
-└── requirements.txt
-```
-
-
-## 2. Environment
+## 1. Environment
 
 The experiments were implemented with Python and PyTorch. A CUDA-capable GPU is recommended.
 
@@ -70,7 +51,7 @@ Expected output:
 torch.Size([1, 5, 256, 256])
 ```
 
-## 3. Dataset preparation
+## 2. Dataset preparation
 
 The dataset should be arranged in Pascal VOC-style format:
 
@@ -117,7 +98,7 @@ For example, for background plus four foreground classes, use:
 
 The training and validation images are resized to `544 × 992` inside `train.py`, so no manual resizing is required before training.
 
-## 4. Reproduce the main training experiment
+## 3. Reproduce the main training experiment
 
 Run the following command from the repository root:
 
@@ -155,7 +136,7 @@ save_weights/
 └── history_*.csv           # epoch-wise CSV log: epoch, train_loss, val_loss, lr, dice
 ```
 
-## 5. Resume training
+## 4. Resume training
 
 To continue from a saved checkpoint:
 
@@ -175,86 +156,3 @@ python train.py \
   --resume ./save_weights/best_model.pth
 ```
 
-## 6. Inference on a single image
-
-Place the trained checkpoint at:
-
-```text
-./save_weights/best_model.pth
-```
-
-Then set the input image path in `predict.py`:
-
-```python
-img_path = "path/to/test/image.png"
-```
-
-Run:
-
-```bash
-python predict.py
-```
-
-The script saves two files in the repository root:
-
-```text
-test_result_mask.png       # predicted binary/class mask
-test_result_overlay.png    # overlay visualization
-```
-
-## 7. Reported experiment setting
-
-Use this table to document the exact setting used in the paper or experiment report.
-
-| Item | Setting |
-|---|---|
-| Input size | 544 × 992 |
-| Optimizer | Adam |
-| Initial learning rate | 1e-4 |
-| Weight decay | 1e-4 |
-| Epochs | 200 |
-| Batch size | 1 |
-| Loss | Cross-entropy + Dice loss + offset magnitude regularization + offset smoothness regularization |
-| Offset magnitude weight | 1e-4 |
-| Offset smoothness weight | 1e-3 |
-| Best checkpoint criterion | Validation Dice coefficient |
-
-## 8. Expected results
-
-Please fill this table with the exact results obtained from the released split and checkpoint.
-
-| Dataset / split | Model | Dice | mIoU | Pixel accuracy | Checkpoint |
-|---|---:|---:|---:|---:|---|
-| Validation set | BFD-UNet | TODO | TODO | TODO | `save_weights/best_model.pth` |
-| Test set | BFD-UNet | TODO | TODO | TODO | TODO |
-
-For full reproducibility, the released repository should include one of the following:
-
-1. the trained checkpoint file, or
-2. a public download link for the checkpoint, or
-3. the exact training log and random seed used to obtain the reported result.
-
-## 9. Notes for reproducing the paper results
-
-- Use the provided `train.txt` and `val.txt` split files. Changing the split will change the validation result.
-- Use the same `--num-classes` value as the released masks.
-- Do not convert segmentation masks to RGB images. The mask must preserve class-index pixel values.
-- The current code uses ImageNet normalization in `train.py`: mean `(0.485, 0.456, 0.406)` and std `(0.229, 0.224, 0.225)`.
-- Validation is performed after every epoch, and the best model is selected by validation Dice coefficient.
-
-## 10. Citation
-
-If this code is useful for your research, please cite:
-
-```bibtex
-@article{TODO_BFD_UNet,
-  title   = {TODO: Paper title},
-  author  = {TODO: Author list},
-  journal = {TODO: Journal or Conference},
-  year    = {TODO}
-}
-```
-
-## 11. License
-
-TODO: Add a license, for example MIT, Apache-2.0, or another license required by your institution or dataset provider.
