@@ -239,100 +239,7 @@ python predict.py \
   --no-save-images
 ```
 
-## 6. Evaluation metrics
-
-The following metrics are calculated from the accumulated confusion matrix over the entire test set.
-
-For class (c), true positives, false positives, and false negatives are denoted as (TP_c), (FP_c), and (FN_c), respectively.
-
-```text
-IoU_c       = TP_c / (TP_c + FP_c + FN_c)
-Dice_c      = 2TP_c / (2TP_c + FP_c + FN_c)
-Precision_c = TP_c / (TP_c + FP_c)
-Recall_c    = TP_c / (TP_c + FN_c)
-```
-
-The background class is labeled as `0`. The lesion classes are labeled as `1, 2, 3, 4`.
-
-In this repository, the reported lesion-level mean metrics are calculated over the foreground lesion classes only:
-
-```text
-mIoU_lesion_classes
-mDice_lesion_classes
-mPrecision_lesion_classes
-mRecall_lesion_classes
-```
-
-Pixels with value `255` in the ground-truth masks are treated as ignored pixels and are not used during metric calculation.
-
-## 7. Reproducing the results reported in the paper
-
-To reproduce the main experiment reported in the manuscript, follow these steps.
-
-### Step 1. Prepare the dataset
-
-Arrange the dataset in the following structure:
-
-```text
-./data/
-└── VOCdevkit/
-    └── VOC2007/
-        ├── JPEGImages/
-        ├── SegmentationClass/
-        └── ImageSets/
-            └── Segmentation/
-                ├── train.txt
-                ├── val.txt
-                └── test.txt
-```
-
-### Step 2. Train BFD-UNet
-
-```bash
-python train.py \
-  --data-path ./data \
-  --num-classes 5 \
-  --device cuda \
-  --batch-size 8 \
-  --epochs 200 \
-  --lr 1e-4 \
-  --wd 1e-4 \
-  --lambda-mag 1e-4 \
-  --lambda-smooth 1e-3 \
-  --save-best \
-  --save-dir ./save_weights
-```
-
-The best model will be saved as:
-
-```text
-./save_weights/best_model.pth
-```
-
-### Step 3. Evaluate the trained model
-
-```bash
-python predict.py \
-  --weights ./save_weights/best_model.pth \
-  --image-dir ./data/VOCdevkit/VOC2007/JPEGImages \
-  --label-dir ./data/VOCdevkit/VOC2007/SegmentationClass \
-  --test-list ./data/VOCdevkit/VOC2007/ImageSets/Segmentation/test.txt \
-  --num-classes 5 \
-  --resize-h 544 \
-  --resize-w 992 \
-  --save-dir ./test_results
-```
-
-The final quantitative results can be found in:
-
-```text
-./test_results/metrics_summary.txt
-./test_results/metrics_per_class.csv
-```
-
-These files correspond to the quantitative segmentation results reported in the manuscript.
-
-## 8. Pretrained weights
+## 6. Pretrained weights
 
 The pretrained weights used for reproducing the main experimental results can be downloaded from:
 
@@ -348,13 +255,13 @@ After downloading, place the checkpoint at:
 
 Then run the test command in Section 5 to reproduce the reported test-set metrics without retraining the model.
 
-## 9. Dataset availability
+## 7. Dataset availability
 
 The in-house panoramic dental radiograph dataset used in this study contains 2,150 images. Due to data privacy and ethical restrictions, the in-house dataset is not directly included in this repository. The dataset may be obtained from the corresponding author upon reasonable request and after permission is granted.
 
 The repository provides the required dataset structure and scripts for training, testing, and evaluation. Users who wish to reproduce the experiments should arrange the dataset according to the Pascal VOC-style layout described in Section 2.
 
-## 10. Notes for reproducibility
+## 8. Notes for reproducibility
 
 To reduce unnecessary workload for readers, the repository provides:
 
