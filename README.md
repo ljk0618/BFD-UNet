@@ -157,3 +157,31 @@ python train.py \
   --resume ./save_weights/best_model.pth
 ```
 
+
+## 5. Inference on a single image
+
+Place the trained checkpoint at:
+
+```text
+./save_weights/best_model.pth
+```
+
+Then set the input image path in `predict.py`:
+
+```python
+img_path = "path/to/test/image.png"
+```
+
+Run:
+
+```bash
+python predict.py
+```
+
+The script saves two files in the repository root:
+
+```text
+test_result_mask.png       # predicted binary/class mask
+test_result_overlay.png    # overlay visualization
+```
+
