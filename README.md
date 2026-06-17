@@ -2,8 +2,6 @@
 
 This repository provides the PyTorch implementation of **BFD-UNet**, a U-Net-based semantic segmentation network with wavelet-based feature decomposition, multi-directional coordinate attention, and constrained deformable convolution. The code is organized for reproducing the training and validation experiments with a Pascal VOC-style dataset layout.
 
-> Replace the dataset, checkpoint, paper, and citation links below with the final public links before publishing this repository.
-
 ## 1. What is included
 
 ```text
