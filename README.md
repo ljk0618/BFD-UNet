@@ -146,7 +146,7 @@ python train.py \
   --data-path ./data \
   --num-classes 5 \
   --device cuda \
-  --batch-size 1 \
+  --batch-size 8 \
   --epochs 200 \
   --lr 1e-4 \
   --wd 1e-4 \
